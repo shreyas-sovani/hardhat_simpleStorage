@@ -7,6 +7,7 @@ A minimal Hardhat project showcasing a simple Solidity contract, scripts, tasks,
 - Deploy script: [scripts/deploy.js](scripts/deploy.js)
 - Custom task: [tasks/block-number.js](tasks/block-number.js)
 - Tests: [test/test-deploy.js](test/test-deploy.js)
+- **Ignition module:** [ignition/modules/SimpleStorage.js](ignition/modules/SimpleStorage.js)
 
 ## Features
 
@@ -15,6 +16,7 @@ A minimal Hardhat project showcasing a simple Solidity contract, scripts, tasks,
 - Etherscan verification
 - Gas usage reporting (writes to gas-report.txt)
 - Solidity coverage
+- **Ignition deployment support**
 
 ## Project structure
 
@@ -29,6 +31,12 @@ A minimal Hardhat project showcasing a simple Solidity contract, scripts, tasks,
 │   └── block-number.js
 ├── test/
 │   └── test-deploy.js
+├── ignition/
+│   └── modules/
+│       └── SimpleStorage.js
+│   └── deployments/
+│       └── chain-<chainId>/
+│           └── deployed_addresses.json
 ├── coverage/ (generated)
 ├── artifacts/ (generated)
 ├── cache/ (generated)
@@ -39,11 +47,11 @@ A minimal Hardhat project showcasing a simple Solidity contract, scripts, tasks,
 Key files:
 - Hardhat config: [hardhat.config.js](hardhat.config.js)
   - Networks: Hardhat, Localhost, Sepolia
-  - Etherscan + gas reporter + coverage integration
   - Solidity: 0.8.28
 - Contract: [contracts/SimpleStorage.sol](contracts/SimpleStorage.sol)
 - Script: [scripts/deploy.js](scripts/deploy.js)
 - Task: [tasks/block-number.js](tasks/block-number.js)
+- **Ignition module:** [ignition/modules/SimpleStorage.js](ignition/modules/SimpleStorage.js)
 
 ## Prerequisites
 
@@ -89,14 +97,26 @@ npx hardhat compile
 npx hardhat node
 ```
 
-- Deploy to localhost
+- Deploy to localhost (classic script)
 ```sh
-npx hardhat run [scripts/deploy.js](scripts/deploy.js) --network localhost
+npx hardhat run scripts/deploy.js --network localhost
 ```
 
-- Deploy to Sepolia
+- **Deploy using Ignition**
 ```sh
-npx hardhat run [scripts/deploy.js](scripts/deploy.js) --network sepolia
+npx hardhat ignition deploy ignition/modules/SimpleStorage.js --network <network>
+```
+Replace `<network>` with `localhost`, `sepolia`, etc.
+
+- **Interact with deployed contract (auto-reads Ignition address)**
+```sh
+npx hardhat run scripts/deploy.js --network <network>
+```
+This script reads the deployed address from Ignition's deployment artifacts and interacts with the contract.
+
+- Deploy to Sepolia (classic script)
+```sh
+npx hardhat run scripts/deploy.js --network sepolia
 ```
 
 - Verify on Etherscan (Sepolia)
@@ -118,6 +138,12 @@ npx hardhat coverage
 ```sh
 npx hardhat block-number --network sepolia
 ```
+
+## Ignition Deployment Details
+
+- Ignition deployment artifacts are stored in `ignition/deployments/chain-<chainId>/`.
+- The deployed contract address is available in `deployed_addresses.json` under the key `SimpleStorageModule#SimpleStorage`.
+- The provided `scripts/deploy.js` script will automatically read the correct address for the current network and interact with the contract.
 
 ## Gas usage
 
@@ -144,6 +170,7 @@ Configured in [hardhat.config.js](hardhat.config.js):
 - “invalid account” on deploy: ensure SEPOLIA_PRIVATE_KEY is set with 0x prefix and has Sepolia ETH.
 - Verification fails: confirm correct constructor args and ETHERSCAN_API_KEY.
 - RPC errors: check SEPOLIA_RPC_URL and provider status.
+- If using Ignition, always use the latest address from `deployed_addresses.json` for interaction.
 
 ## License
 
