@@ -1,50 +1,28 @@
-const { ethers, run,network } = require("hardhat");
+const hre = require("hardhat");
+
 
 async function main() {
-    const SimpleStorageFactory = await ethers.getContractFactory("SimpleStorage");
-    console.log("Deploying SimpleStorage...");
-    const simpleStorage = await SimpleStorageFactory.deploy();
-    await simpleStorage.waitForDeployment();
-    console.log("SimpleStorage deployed to:", simpleStorage.target);
 
-    if(network.config.chainId === 11155111 && process.env.ETHERSCAN_API_KEY){
-        await verify(simpleStorage.target, []);
-    }
+    const address = "0x5FbDB2315678afecb367f032d93F642f64180aa3"; // Replace with your deployed contract address
 
-    
-    // Interact with the contract
+    // Attach to the deployed contract
+    const SimpleStorage = await hre.ethers.getContractFactory("SimpleStorage");
+    const simpleStorage = SimpleStorage.attach(address);
+
+    //INTERACT
+
     const currentValue = await simpleStorage.retrieve();
-    console.log(`Current Value is: ${currentValue}`);
+    console.log("Current Value:", currentValue.toString());
 
-    const transactionValue = await simpleStorage.store(7);
-    await transactionValue.wait();
+    const storeValue = await simpleStorage.store(7);
+    await storeValue.wait();
     console.log("Value Updated!");
 
     const updatedValue = await simpleStorage.retrieve();
-    console.log(`Updated Value is: ${updatedValue}`);
-
+    console.log("Updated Value:", updatedValue.toString());
 }
 
-async function verify(contractAddress, args) {
-    console.log("Verifying contract...");
-    try{
-        await run("verify:verify",{
-            address : contractAddress,
-            constructorArguments: args,
-        })
-    }catch(e){
-        if(e.message.toLowerCase().includes("already verified")){
-            console.log("Already Verified!");
-        }else{
-            console.log(e);
-        }
-    }
-
-}
-
-main()
-    .then(() => process.exit(0))
-    .catch((error) => {
-        console.error(error);
-        process.exit(1);
-    });
+main().catch((error) => {
+    console.error(error);
+    process.exitCode = 1;
+});
